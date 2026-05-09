@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPPU BE COMP — LP5 Practicals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080d;
+  --surface: #0e1018;
+  --surface2: #13161f;
+  --border: #1c2030;
+  --border2: #252a3a;
+  --text: #c8d0e0;
+  --muted: #4a5368;
+  --muted2: #6b7899;
+  --heading: #eef1f8;
+  --omp: #00cfff;
+  --cuda: #7fff58;
+  --dl: #ff7eb3;
+  --rnn: #ffb347;
+  --cnn: #a78bfa;
+  --omp-bg: rgba(0,207,255,0.08);
+  --cuda-bg: rgba(127,255,88,0.08);
+  --dl-bg: rgba(255,126,179,0.08);
+  --rnn-bg: rgba(255,179,71,0.08);
+  --cnn-bg: rgba(167,139,250,0.08);
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 64px 48px 48px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,207,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,207,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 100%);
+}
+.hero-glow {
+  position: absolute;
+  top: -80px; left: 10%;
+  width: 500px; height: 300px;
+  background: radial-gradient(ellipse, rgba(0,207,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-glow2 {
+  position: absolute;
+  top: -60px; right: 5%;
+  width: 400px; height: 250px;
+  background: radial-gradient(ellipse, rgba(255,126,179,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--omp);
+  border: 1px solid rgba(0,207,255,0.25);
+  background: rgba(0,207,255,0.06);
+  padding: 5px 12px; border-radius: 4px;
+  margin-bottom: 20px;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--omp);
+  box-shadow: 0 0 8px var(--omp);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+h1 {
+  font-family: var(--sans);
+  font-size: clamp(26px, 5vw, 48px);
+  font-weight: 700;
+  color: var(--heading);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+h1 .accent-omp { color: var(--omp); }
+h1 .accent-dl { color: var(--dl); }
+
+.hero-sub {
+  font-size: 14px;
+  color: var(--muted2);
+  font-family: var(--mono);
+  margin-bottom: 32px;
+}
+
+.stat-row {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 0;
+}
+.stat {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.stat-num { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--heading); }
+.stat-label { font-size: 11px; color: var(--muted2); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── NAV ── */
+.nav {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,8,13,0.9);
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  padding: 14px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted2);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active-omp { color: var(--omp); border-bottom-color: var(--omp); }
+.nav-btn.active-dl { color: var(--dl); border-bottom-color: var(--dl); }
+
+/* ── LAYOUT ── */
+.page { display: none; }
+.page.active { display: block; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 110px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 48px;
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar-section {
+  padding: 0 0 20px;
+  margin-bottom: 4px;
+}
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 20px 8px;
+  display: block;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 13px;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+}
+.sidebar-item:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+.sidebar-item.active { color: var(--heading); background: rgba(255,255,255,0.03); }
+.sidebar-item.active-omp { border-left-color: var(--omp); color: var(--omp); }
+.sidebar-item.active-dl { border-left-color: var(--dl); color: var(--dl); }
+.sidebar-item.active-cuda { border-left-color: var(--cuda); color: var(--cuda); }
+.sidebar-item.active-rnn { border-left-color: var(--rnn); color: var(--rnn); }
+.sidebar-item.active-cnn { border-left-color: var(--cnn); color: var(--cnn); }
+.sidebar-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-omp { background: var(--omp); }
+.dot-cuda { background: var(--cuda); }
+.dot-dl { background: var(--dl); }
+.dot-rnn { background: var(--rnn); }
+.dot-cnn { background: var(--cnn); }
+
+/* ── CONTENT ── */
+.content {
+  padding: 32px 40px 80px;
+  max-width: 900px;
+}
+
+.section-panel { display: none; }
+.section-panel.active { display: block; }
+
+/* ── CARD ── */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card-head {
+  padding: 20px 24px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.card-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.badge-omp { background: var(--omp-bg); color: var(--omp); border: 1px solid rgba(0,207,255,0.2); }
+.badge-cuda { background: var(--cuda-bg); color: var(--cuda); border: 1px solid rgba(127,255,88,0.2); }
+.badge-dl { background: var(--dl-bg); color: var(--dl); border: 1px solid rgba(255,126,179,0.2); }
+.badge-rnn { background: var(--rnn-bg); color: var(--rnn); border: 1px solid rgba(255,179,71,0.2); }
+.badge-cnn { background: var(--cnn-bg); color: var(--cnn); border: 1px solid rgba(167,139,250,0.2); }
+.badge-easy { background: rgba(0,207,255,0.08); color: var(--omp); border: 1px solid rgba(0,207,255,0.2); }
+.badge-medium { background: rgba(255,179,71,0.08); color: var(--rnn); border: 1px solid rgba(255,179,71,0.2); }
+.badge-hard { background: rgba(255,90,90,0.08); color: #ff6b6b; border: 1px solid rgba(255,90,90,0.2); }
+
+.card-title-area h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--heading);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.card-title-area .ps {
+  font-size: 12px;
+  color: var(--muted2);
+  line-height: 1.6;
+}
+
+/* ── CODE BLOCK ── */
+.code-wrap {
+  position: relative;
+  background: #0a0d13;
+  border-top: 1px solid var(--border);
+}
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--muted2);
+  text-transform: uppercase;
+}
+.copy-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted2);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--border2); }
+.copy-btn.copied { color: var(--cuda); border-color: var(--cuda); }
+pre {
+  padding: 20px 24px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: #c9d1d9;
+  white-space: pre;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+pre code { color: inherit; }
+
+/* syntax colors */
+.kw { color: #ff7eb9; }
+.fn { color: #79c0ff; }
+.str { color: #a5d6ff; }
+.num { color: #f2cc60; }
+.cmt { color: #4a5368; font-style: italic; }
+.pp { color: #ffa657; }
+.tp { color: #7ce38b; }
+
+/* ── TAGS ── */
+.tag-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+}
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.03);
+  color: var(--muted2);
+  border: 1px solid var(--border);
+}
+
+/* ── COMPILE NOTE ── */
+.compile-note {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 24px 0;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted2);
+  border: 1px solid var(--border);
+}
+.compile-note span { color: var(--cuda); }
+
+/* ── VIVA SECTION ── */
+.viva-wrap { padding: 20px 24px; }
+.viva-head {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.viva-item { margin-bottom: 20px; }
+.viva-q {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--heading);
+  margin-bottom: 6px;
+  display: flex; gap: 8px;
+}
+.viva-q::before {
+  content: 'Q';
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.viva-a {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+  padding-left: 16px;
+  border-left: 2px solid var(--border2);
+}
+.viva-a code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--omp);
+}
+
+/* ── THEORY ── */
+.theory-wrap { padding: 20px 24px; border-top: 1px solid var(--border); }
+.theory-head {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.theory-p {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+.theory-p:last-child { margin-bottom: 0; }
+.theory-p code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--cuda);
+}
+.theory-p strong { color: var(--heading); font-weight: 600; }
+
+/* ── FILE REF ── */
+.file-ref {
+  margin: 16px 24px 24px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.file-ref-title { color: var(--muted2); margin-bottom: 10px; letter-spacing: 1px; font-size: 10px; text-transform: uppercase; }
+.file-ref-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; color: var(--text); }
+.file-ref-row:last-child { margin-bottom: 0; }
+.file-ref-row .filename { color: var(--cuda); }
+
+/* ── DATASET COLUMNS ── */
+.ds-cols {
+  margin: 0 24px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.ds-cols-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted2);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+.ds-cols-head:hover { color: var(--text); }
+.ds-cols-body { display: none; }
+.ds-cols-body.open { display: block; }
+.ds-col-row {
+  display: grid; grid-template-columns: 90px 1fr;
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  gap: 12px;
+}
+.ds-col-row:last-child { border-bottom: none; }
+.ds-col-name { color: var(--cuda); font-weight: 700; }
+.ds-col-desc { color: var(--muted2); font-family: var(--sans); font-size: 11.5px; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 6px;
+}
+.section-desc {
+  font-size: 13px;
+  color: var(--muted2);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* ── OVERVIEW PAGE ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.ov-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.ov-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+.ov-card-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+.ov-card-title { font-size: 14px; font-weight: 600; color: var(--heading); margin-bottom: 6px; line-height: 1.3; }
+.ov-card-sub { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+.ov-card-footer { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+
+.ov-omp { border-top: 2px solid var(--omp); }
+.ov-cuda { border-top: 2px solid var(--cuda); }
+.ov-dl { border-top: 2px solid var(--dl); }
+.ov-rnn { border-top: 2px solid var(--rnn); }
+.ov-cnn { border-top: 2px solid var(--cnn); }
+
+/* ── ACCORDION ── */
+.acc-section { margin-bottom: 8px; }
+.acc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.acc-head:hover { border-color: var(--border2); color: var(--heading); }
+.acc-head.open { border-radius: 8px 8px 0 0; }
+.acc-arrow { font-family: var(--mono); font-size: 12px; color: var(--muted2); transition: transform 0.2s; }
+.acc-head.open .acc-arrow { transform: rotate(90deg); }
+.acc-body { display: none; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
+.acc-body.open { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero { padding: 40px 24px 32px; }
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .content { padding: 24px 20px 60px; }
+  .nav-btn { padding: 12px 14px; font-size: 10px; }
+}
+
+/* ── ANIMATIONS ── */
+.section-panel.active .card {
+  animation: fadeUp 0.3s ease forwards;
+}
+.section-panel.active .card:nth-child(2) { animation-delay: 0.05s; }
+.section-panel.active .card:nth-child(3) { animation-delay: 0.1s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-badge">SPPU · BE COMP · SEM 8</div>
+  <h1>LP-V <span class="accent-omp">HPC</span> &amp; <span class="accent-dl">DL</span><br>Practicals</h1>
+  <p class="hero-sub">// Lab Practice 5 — Full Reference with Code + Theory + Viva Q&amp;A</p>
+  <div class="stat-row">
+    <div class="stat"><span class="stat-num" style="color:var(--omp)">5</span><span class="stat-label">HPC Programs</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--dl)">4</span><span class="stat-label">DL Programs</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--cuda)">2</span><span class="stat-label">CUDA Programs</span></div>
+    <div class="stat"><span class="stat-num" style="color:var(--cnn)">60+</span><span class="stat-label">Viva Questions</span></div>
+    <a href="https://drive.google.com/drive/folders/1mGRzNgdHbdzAbYTedHD1sMAQJTS-orBi?usp=share_link" target="_blank" class="stat ds-link" style="text-decoration:none;cursor:pointer;border-color:rgba(0,207,255,0.3);background:rgba(0,207,255,0.06);flex-direction:row;align-items:center;gap:10px;">
+      <span style="font-size:18px;line-height:1">☁</span>
+      <span style="display:flex;flex-direction:column;gap:2px;">
+        <span class="stat-num" style="color:var(--omp);font-size:13px;letter-spacing:0">Datasets</span>
+        <span class="stat-label" style="color:var(--omp);opacity:0.7">Google Drive ↗</span>
+      </span>
+    </a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active-omp" onclick="switchPage('overview', this)">◈ Overview</button>
+  <button class="nav-btn" onclick="switchPage('hpc', this)">⚡ HPC (OpenMP + CUDA)</button>
+  <button class="nav-btn" onclick="switchPage('dl', this)">🧠 Deep Learning</button>
+</nav>
+
+<!-- OVERVIEW PAGE -->
+<div class="page active" id="page-overview">
+  <div style="padding:40px 48px 80px; max-width:1100px; margin:0 auto;">
+    <p class="section-title">All Practicals at a Glance</p>
+    <p class="section-desc">SPPU BE Computer Engineering — Lab Practice 5 covers High Performance Computing (OpenMP &amp; CUDA) and Deep Learning (DNN, CNN, RNN). Click any card to jump to the code.</p>
+
+    <p style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">HIGH PERFORMANCE COMPUTING</p>
+    <div class="overview-grid">
+      <div class="ov-card ov-omp" onclick="goTo('hpc','hpc1')">
+        <div class="ov-card-badge" style="color:var(--omp)">HPC-01 · Easy</div>
+        <div class="ov-card-title">Parallel Reduction — Min, Max, Sum, Avg</div>
+        <div class="ov-card-sub">OpenMP reduction clause. Measure sequential vs parallel performance.</div>
+        <div class="ov-card-footer"><span class="tag">OpenMP</span><span class="tag">reduction</span><span class="tag">C++</span></div>
+      </div>
+      <div class="ov-card ov-omp" onclick="goTo('hpc','hpc2')">
+        <div class="ov-card-badge" style="color:var(--omp)">HPC-02 · Medium</div>
+        <div class="ov-card-title">Parallel Bubble Sort &amp; Merge Sort</div>
+        <div class="ov-card-sub">Parallel sorting with OpenMP parallel for and sections.</div>
+        <div class="ov-card-footer"><span class="tag">OpenMP</span><span class="tag">sorting</span><span class="tag">C++</span></div>
+      </div>
+      <div class="ov-card ov-omp" onclick="goTo('hpc','hpc3')">
+        <div class="ov-card-badge" style="color:var(--omp)">HPC-03 · Hard</div>
+        <div class="ov-card-title">Parallel BFS &amp; DFS using OpenMP</div>
+        <div class="ov-card-sub">Graph traversal algorithms parallelised with OpenMP on undirected graph.</div>
+        <div class="ov-card-footer"><span class="tag">OpenMP</span><span class="tag">graphs</span><span class="tag">BFS/DFS</span></div>
+      </div>
+      <div class="ov-card ov-cuda" onclick="goTo('hpc','hpc4')">
+        <div class="ov-card-badge" style="color:var(--cuda)">HPC-04 · CUDA</div>
+        <div class="ov-card-title">CUDA Vector Addition</div>
+        <div class="ov-card-sub">GPU-parallel element-wise addition of two large vectors.</div>
+        <div class="ov-card-footer"><span class="tag">CUDA</span><span class="tag">GPU</span><span class="tag">C</span></div>
+      </div>
+      <div class="ov-card ov-cuda" onclick="goTo('hpc','hpc5')">
+        <div class="ov-card-badge" style="color:var(--cuda)">HPC-05 · CUDA</div>
+        <div class="ov-card-title">CUDA Matrix Multiplication</div>
+        <div class="ov-card-sub">One thread per output element. 2D thread blocks with dim3.</div>
+        <div class="ov-card-footer"><span class="tag">CUDA</span><span class="tag">GPU</span><span class="tag">dim3</span></div>
+      </div>
+    </div>
+
+    <p style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;margin-top:12px;">DEEP LEARNING</p>
+    <a href="https://drive.google.com/drive/folders/1mGRzNgdHbdzAbYTedHD1sMAQJTS-orBi?usp=share_link" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:14px;background:rgba(0,207,255,0.05);border:1px solid rgba(0,207,255,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,207,255,0.09)'" onmouseout="this.style.background='rgba(0,207,255,0.05)'">
+      <span style="font-size:22px">☁</span>
+      <span style="flex:1">
+        <span style="display:block;font-family:var(--mono);font-size:11px;color:var(--omp);letter-spacing:1px;margin-bottom:3px;">DATASETS — GOOGLE DRIVE</span>
+        <span style="font-size:12px;color:var(--muted2);">HousingData.csv &nbsp;·&nbsp; IMDB_Dataset.csv &nbsp;·&nbsp; goog.csv — all required files in one folder</span>
+      </span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--omp);border:1px solid rgba(0,207,255,0.3);padding:5px 12px;border-radius:5px;white-space:nowrap;">Open ↗</span>
+    </a>
+    <div class="overview-grid">
+      <div class="ov-card ov-dl" onclick="goTo('dl','dl1')">
+        <div class="ov-card-badge" style="color:var(--dl)">DL-01 · Easy</div>
+        <div class="ov-card-title">Boston Housing — Linear Regression DNN</div>
+        <div class="ov-card-sub">Single neuron DNN equivalent to linear regression. MSE + MAE metrics. Uses <strong>HousingData.csv</strong>.</div>
+        <div class="ov-card-footer"><span class="tag">Keras</span><span class="tag">Regression</span><span class="tag">StandardScaler</span></div>
+      </div>
+      <div class="ov-card ov-dl" onclick="goTo('dl','dl2')">
+        <div class="ov-card-badge" style="color:var(--dl)">DL-02 · Medium</div>
+        <div class="ov-card-title">IMDB Sentiment — Binary Classification</div>
+        <div class="ov-card-sub">TF-IDF + DNN for positive/negative movie review classification. Uses <strong>IMDB_Dataset.csv</strong>.</div>
+        <div class="ov-card-footer"><span class="tag">Keras</span><span class="tag">TF-IDF</span><span class="tag">NLP</span></div>
+      </div>
+      <div class="ov-card ov-cnn" onclick="goTo('dl','dl3')">
+        <div class="ov-card-badge" style="color:var(--cnn)">DL-03 · Hard</div>
+        <div class="ov-card-title">Plant Disease Detection — CNN</div>
+        <div class="ov-card-sub">Conv2D + MaxPooling + Dropout for multi-class image classification.</div>
+        <div class="ov-card-footer"><span class="tag">CNN</span><span class="tag">ImageDataGenerator</span><span class="tag">Dropout</span></div>
+      </div>
+      <div class="ov-card ov-rnn" onclick="goTo('dl','dl4')">
+        <div class="ov-card-badge" style="color:var(--rnn)">DL-04 · Hard</div>
+        <div class="ov-card-title">Google Stock Price — RNN Time Series</div>
+        <div class="ov-card-sub">SimpleRNN with sliding window for sequential stock price prediction. Uses <strong>goog.csv</strong>.</div>
+        <div class="ov-card-footer"><span class="tag">RNN</span><span class="tag">Time Series</span><span class="tag">MinMaxScaler</span></div>
+      </div>
+    </div>
+
+    <!-- Quick compile reference -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:8px;">
+      <p style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">QUICK COMPILE REFERENCE</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--omp);margin-bottom:8px;letter-spacing:1px;">OPENMP</div>
+          <code style="font-family:var(--mono);font-size:12px;color:var(--text);">g++ file.cpp -fopenmp -o out</code>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--cuda);margin-bottom:8px;letter-spacing:1px;">CUDA</div>
+          <code style="font-family:var(--mono);font-size:12px;color:var(--text);">nvcc file.cu -o out</code>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dl);margin-bottom:8px;letter-spacing:1px;">DEEP LEARNING (install once)</div>
+          <code style="font-family:var(--mono);font-size:12px;color:var(--text);">pip install tensorflow scikit-learn pandas matplotlib</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HPC PAGE -->
+<div class="page" id="page-hpc">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-label">OpenMP</span>
+        <a class="sidebar-item active active-omp" onclick="showSection('hpc','hpc1',this,'omp')" href="#">
+          <span class="sidebar-dot dot-omp"></span>Parallel Reduction
+        </a>
+        <a class="sidebar-item" onclick="showSection('hpc','hpc2',this,'omp')" href="#">
+          <span class="sidebar-dot dot-omp"></span>Bubble + Merge Sort
+        </a>
+        <a class="sidebar-item" onclick="showSection('hpc','hpc3',this,'omp')" href="#">
+          <span class="sidebar-dot dot-omp"></span>BFS + DFS
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">CUDA</span>
+        <a class="sidebar-item" onclick="showSection('hpc','hpc4',this,'cuda')" href="#">
+          <span class="sidebar-dot dot-cuda"></span>Vector Addition
+        </a>
+        <a class="sidebar-item" onclick="showSection('hpc','hpc5',this,'cuda')" href="#">
+          <span class="sidebar-dot dot-cuda"></span>Matrix Multiplication
+        </a>
+      </div>
+    </aside>
+    <main class="content">
+
+      <!-- HPC1: Parallel Reduction -->
+      <div class="section-panel active" id="hpc-hpc1">
+        <p class="section-title">Parallel Reduction</p>
+        <p class="section-desc">Min, Max, Sum and Average using OpenMP reduction clause. Measures sequential vs parallel performance.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-easy">EASY</span>
+            <span class="card-badge badge-omp">OpenMP</span>
+            <div class="card-title-area">
+              <h2>Parallel Reduction — Min, Max, Sum, Avg</h2>
+              <p class="ps">Uses <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--omp)">#pragma omp parallel for reduction(op:var)</code> to compute aggregate stats in parallel.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">OpenMP</span><span class="tag">reduction</span><span class="tag">min/max</span><span class="tag">parallel for</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">C++ · OpenMP</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-hpc1">/*
+  Note: min/max reduction not supported on MSVC (Windows).
+  Run on Linux or WSL with GCC.
+*/
+#include &lt;iostream&gt;
+#include &lt;omp.h&gt;
+using namespace std;
+
+int minval(int arr[], int n) {
+    int minval = arr[0];
+    #pragma omp parallel for reduction(min : minval)
+    for (int i = 0; i &lt; n; i++)
+        if (arr[i] &lt; minval) minval = arr[i];
+    return minval;
+}
+
+int maxval(int arr[], int n) {
+    int maxval = arr[0];
+    #pragma omp parallel for reduction(max : maxval)
+    for (int i = 0; i &lt; n; i++)
+        if (arr[i] &gt; maxval) maxval = arr[i];
+    return maxval;
+}
+
+int sum(int arr[], int n) {
+    int sum = 0;
+    #pragma omp parallel for reduction(+ : sum)
+    for (int i = 0; i &lt; n; i++)
+        sum += arr[i];
+    return sum;
+}
+
+double average(int arr[], int n) {
+    return (double)sum(arr, n) / n;
+}
+
+int main() {
+    int n = 5;
+    int arr[] = {1, 2, 3, 4, 5};
+    cout &lt;&lt; "The minimum value is: " &lt;&lt; minval(arr, n) &lt;&lt; '\n';
+    cout &lt;&lt; "The maximum value is: " &lt;&lt; maxval(arr, n) &lt;&lt; '\n';
+    cout &lt;&lt; "The summation is:     " &lt;&lt; sum(arr, n)    &lt;&lt; '\n';
+    cout &lt;&lt; "The average is:       " &lt;&lt; average(arr, n) &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+          </div>
+          <div class="compile-note">
+            <span style="color:var(--muted2)">$</span>
+            <span>g++ file.cpp -fopenmp -o out &amp;&amp; ./out</span>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p"><strong>Reduction</strong> combines all elements of an array into a single value using an associative operator (min, max, sum). In parallel computing, each thread computes a partial result on its chunk, then results are combined — this is called a <strong>tree reduction</strong>.</p>
+            <p class="theory-p">OpenMP handles this automatically with the <code>reduction(op:var)</code> clause. It creates a private copy of the variable for each thread, performs the loop in parallel, then combines all copies at the end.</p>
+            <p class="theory-p">Speedup follows <strong>Amdahl's Law</strong>: Speedup = 1 / (S + P/N), where S = sequential fraction, P = parallel fraction, N = number of processors. The final merge step is sequential overhead.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">What is reduction in parallel computing?</div><div class="viva-a">Combining all elements of an array into one value (sum, min, max) using an associative operator, done in parallel by splitting work across threads and merging results.</div></div>
+            <div class="viva-item"><div class="viva-q">Why can't you use a shared variable with += in parallel?</div><div class="viva-a">Multiple threads reading and writing the same variable simultaneously causes a <strong>race condition</strong> — the final result will be incorrect without synchronization.</div></div>
+            <div class="viva-item"><div class="viva-q">What does the <code>reduction(+:sum)</code> clause do internally?</div><div class="viva-a">OpenMP creates a private copy of <code>sum</code> initialized to 0 for each thread. After the loop, all copies are added together into the original variable.</div></div>
+            <div class="viva-item"><div class="viva-q">What is Amdahl's Law?</div><div class="viva-a">Speedup = 1 / (S + P/N), where S = sequential fraction, P = parallel fraction, N = number of processors. It limits the maximum speedup achievable by parallelization.</div></div>
+            <div class="viva-item"><div class="viva-q">What is the time complexity of parallel reduction?</div><div class="viva-a">O(n/p + log p) where n = elements and p = processors. The log p term is the tree-merge step at the end.</div></div>
+            <div class="viva-item"><div class="viva-q">What is OpenMP?</div><div class="viva-a">Open Multi-Processing — an API for shared-memory parallel programming in C/C++/Fortran using compiler directives (<code>#pragma omp</code>), library routines, and environment variables.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HPC2: Sorting -->
+      <div class="section-panel" id="hpc-hpc2">
+        <p class="section-title">Parallel Bubble Sort &amp; Merge Sort</p>
+        <p class="section-desc">Sequential vs parallel performance comparison for two classic sorting algorithms using OpenMP.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-medium">MEDIUM</span>
+            <span class="card-badge badge-omp">OpenMP</span>
+            <div class="card-title-area">
+              <h2>Bubble Sort + Merge Sort (Parallel)</h2>
+              <p class="ps">Bubble sort uses <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--omp)">parallel for</code>; merge sort uses <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--omp)">parallel sections</code> to sort both halves simultaneously.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">OpenMP</span><span class="tag">bubble sort</span><span class="tag">merge sort</span><span class="tag">parallel sections</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">C++ · OpenMP</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-hpc2">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cstdlib&gt;
+#include &lt;ctime&gt;
+#include &lt;omp.h&gt;
+
+using namespace std;
+#define SIZE 10000
+
+// ── Sequential Bubble Sort ──────────────────────────
+void bubbleSortSeq(vector&lt;int&gt;&amp; arr) {
+    int n = arr.size();
+    for (int i = 0; i &lt; n - 1; i++)
+        for (int j = 0; j &lt; n - i - 1; j++)
+            if (arr[j] &gt; arr[j + 1]) swap(arr[j], arr[j + 1]);
+}
+
+// ── Parallel Bubble Sort (Odd-Even Transposition) ───
+void bubbleSortParallel(vector&lt;int&gt;&amp; arr) {
+    int n = arr.size();
+    for (int i = 0; i &lt; n; i++) {
+        #pragma omp parallel for          // Even phase
+        for (int j = 0; j &lt; n - 1; j += 2)
+            if (arr[j] &gt; arr[j + 1]) swap(arr[j], arr[j + 1]);
+
+        #pragma omp parallel for          // Odd phase
+        for (int j = 1; j &lt; n - 1; j += 2)
+            if (arr[j] &gt; arr[j + 1]) swap(arr[j], arr[j + 1]);
+    }
+}
+
+// ── Merge Helper ────────────────────────────────────
+void merge(vector&lt;int&gt;&amp; arr, int l, int m, int r) {
+    vector&lt;int&gt; left(arr.begin() + l, arr.begin() + m + 1);
+    vector&lt;int&gt; right(arr.begin() + m + 1, arr.begin() + r + 1);
+    int i = 0, j = 0, k = l;
+    while (i &lt; left.size() &amp;&amp; j &lt; right.size())
+        arr[k++] = (left[i] &lt;= right[j]) ? left[i++] : right[j++];
+    while (i &lt; left.size())  arr[k++] = left[i++];
+    while (j &lt; right.size()) arr[k++] = right[j++];
+}
+
+// ── Sequential Merge Sort ───────────────────────────
+void mergeSortSeq(vector&lt;int&gt;&amp; arr, int l, int r) {
+    if (l &lt; r) {
+        int m = (l + r) / 2;
+        mergeSortSeq(arr, l, m);
+        mergeSortSeq(arr, m + 1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+// ── Parallel Merge Sort ─────────────────────────────
+void mergeSortParallel(vector&lt;int&gt;&amp; arr, int l, int r, int depth) {
+    if (l &lt; r) {
+        int m = (l + r) / 2;
+        if (depth &lt;= 0) {
+            mergeSortSeq(arr, l, m);
+            mergeSortSeq(arr, m + 1, r);
+        } else {
+            #pragma omp parallel sections
+            {
+                #pragma omp section
+                mergeSortParallel(arr, l, m, depth - 1);
+                #pragma omp section
+                mergeSortParallel(arr, m + 1, r, depth - 1);
+            }
+        }
+        merge(arr, l, m, r);
+    }
+}
+
+int main() {
+    vector&lt;int&gt; arr(SIZE), temp;
+    srand(time(0));
+    for (int&amp; x : arr) x = rand() % 100000;
+
+    double start, end;
+
+    temp = arr; start = omp_get_wtime();
+    bubbleSortSeq(temp);
+    end = omp_get_wtime();
+    cout &lt;&lt; "Sequential Bubble Sort Time: " &lt;&lt; (end - start) &lt;&lt; " sec\n";
+
+    temp = arr; start = omp_get_wtime();
+    bubbleSortParallel(temp);
+    end = omp_get_wtime();
+    cout &lt;&lt; "Parallel Bubble Sort Time:   " &lt;&lt; (end - start) &lt;&lt; " sec\n";
+
+    temp = arr; start = omp_get_wtime();
+    mergeSortSeq(temp, 0, SIZE - 1);
+    end = omp_get_wtime();
+    cout &lt;&lt; "Sequential Merge Sort Time:  " &lt;&lt; (end - start) &lt;&lt; " sec\n";
+
+    temp = arr; start = omp_get_wtime();
+    mergeSortParallel(temp, 0, SIZE - 1, 4);
+    end = omp_get_wtime();
+    cout &lt;&lt; "Parallel Merge Sort Time:    " &lt;&lt; (end - start) &lt;&lt; " sec\n";
+
+    return 0;
+}</code></pre>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p"><strong>Parallel Bubble Sort:</strong> Standard bubble sort is O(n²) and inherently sequential. To parallelize, <strong>odd-even transposition sort</strong> alternates between comparing odd-indexed and even-indexed pairs, which can all be compared simultaneously. <code>#pragma omp parallel for</code> splits the inner loop across threads.</p>
+            <p class="theory-p"><strong>Parallel Merge Sort:</strong> Merge sort is naturally recursive — split array → sort left → sort right → merge. The two halves are <strong>independent</strong>, making it ideal for parallelism. <code>#pragma omp parallel sections</code> runs left and right recursive calls in separate threads. Merge remains sequential.</p>
+            <p class="theory-p">Time complexity: O(n log n). At shallow recursion depths, thread creation overhead can outweigh gains for small arrays.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">Why is bubble sort hard to parallelize?</div><div class="viva-a">Each comparison depends on the result of adjacent comparisons. You can't compare a[j] and a[j+1] at the same time as a[j+1] and a[j+2] because a[j+1] may change.</div></div>
+            <div class="viva-item"><div class="viva-q">What is odd-even transposition sort?</div><div class="viva-a">In odd phases, compare (a[1],a[2]), (a[3],a[4])... In even phases, compare (a[0],a[1]), (a[2],a[3])... All pairs in each phase are independent and can be swapped in parallel.</div></div>
+            <div class="viva-item"><div class="viva-q">What does <code>parallel sections</code> do?</div><div class="viva-a">It assigns each <code>#pragma omp section</code> block to a different thread. Both the left and right merge sort calls run concurrently.</div></div>
+            <div class="viva-item"><div class="viva-q">Difference between <code>parallel for</code> and <code>parallel sections</code>?</div><div class="viva-a"><code>parallel for</code> splits loop iterations across threads (data parallelism). <code>parallel sections</code> runs distinct code blocks in parallel (task parallelism).</div></div>
+            <div class="viva-item"><div class="viva-q">Compare bubble sort vs merge sort.</div><div class="viva-a">Bubble sort: O(n²), in-place, easy to implement, poor for large data. Merge sort: O(n log n), requires extra space, divide-and-conquer, much better for large arrays.</div></div>
+            <div class="viva-item"><div class="viva-q">What is the stable complexity of merge sort?</div><div class="viva-a">O(n log n) in all cases — best, average, and worst. It also requires O(n) extra space for the temporary array during merge.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HPC3: BFS DFS -->
+      <div class="section-panel" id="hpc-hpc3">
+        <p class="section-title">Parallel BFS &amp; DFS</p>
+        <p class="section-desc">Graph traversal algorithms on an undirected graph using OpenMP for parallelism.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-hard">HARD</span>
+            <span class="card-badge badge-omp">OpenMP</span>
+            <div class="card-title-area">
+              <h2>Parallel BFS and DFS using OpenMP</h2>
+              <p class="ps">BFS uses a queue with parallel neighbor expansion. DFS uses recursion with parallel subtree exploration.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">OpenMP</span><span class="tag">BFS</span><span class="tag">DFS</span><span class="tag">graphs</span><span class="tag">adjacency list</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">C++ · OpenMP</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-hpc3">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;queue&gt;
+#include &lt;omp.h&gt;
+
+using namespace std;
+
+class Graph {
+    int V;
+    vector&lt;vector&lt;int&gt;&gt; adj;
+
+public:
+    Graph(int V) {
+        this-&gt;V = V;
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u); // undirected graph
+    }
+
+    // Parallel BFS
+    void parallelBFS(int start) {
+        vector&lt;bool&gt; visited(V, false);
+        queue&lt;int&gt; q;
+
+        visited[start] = true;
+        q.push(start);
+
+        cout &lt;&lt; "\nParallel BFS Traversal: ";
+
+        while (!q.empty()) {
+            int size = q.size();
+
+            #pragma omp parallel for
+            for (int i = 0; i &lt; size; i++) {
+                int node = -1;
+
+                #pragma omp critical
+                {
+                    if (!q.empty()) {
+                        node = q.front();
+                        q.pop();
+                        cout &lt;&lt; node &lt;&lt; " ";
+                    }
+                }
+
+                if (node != -1) {
+                    for (int neighbor : adj[node]) {
+                        if (!visited[neighbor]) {
+                            #pragma omp critical
+                            {
+                                if (!visited[neighbor]) {
+                                    visited[neighbor] = true;
+                                    q.push(neighbor);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        cout &lt;&lt; endl;
+    }
+
+    // Parallel DFS Utility
+    void parallelDFSUtil(int node, vector&lt;bool&gt; &amp;visited) {
+        bool alreadyVisited;
+
+        #pragma omp critical
+        {
+            alreadyVisited = visited[node];
+            if (!visited[node]) {
+                visited[node] = true;
+                cout &lt;&lt; node &lt;&lt; " ";
+            }
+        }
+
+        if (alreadyVisited) return;
+
+        #pragma omp parallel for
+        for (int i = 0; i &lt; adj[node].size(); i++) {
+            int neighbor = adj[node][i];
+            if (!visited[neighbor]) {
+                #pragma omp task
+                parallelDFSUtil(neighbor, visited);
+            }
+        }
+    }
+
+    // Parallel DFS
+    void parallelDFS(int start) {
+        vector&lt;bool&gt; visited(V, false);
+        cout &lt;&lt; "\nParallel DFS Traversal: ";
+
+        #pragma omp parallel
+        {
+            #pragma omp single
+            { parallelDFSUtil(start, visited); }
+        }
+        cout &lt;&lt; endl;
+    }
+};
+
+int main() {
+    int V, E;
+    cout &lt;&lt; "Enter number of vertices: "; cin &gt;&gt; V;
+    Graph g(V);
+    cout &lt;&lt; "Enter number of edges: ";   cin &gt;&gt; E;
+    cout &lt;&lt; "Enter edges (u v):\n";
+    for (int i = 0; i &lt; E; i++) {
+        int u, v; cin &gt;&gt; u &gt;&gt; v;
+        g.addEdge(u, v);
+    }
+    int start;
+    cout &lt;&lt; "Enter starting vertex: "; cin &gt;&gt; start;
+    g.parallelBFS(start);
+    g.parallelDFS(start);
+    return 0;
+}</code></pre>
+          </div>
+          <div style="padding:12px 24px;border-top:1px solid var(--border);background:rgba(255,255,255,0.01);">
+            <p style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;">SAMPLE INPUT</p>
+            <code style="font-family:var(--mono);font-size:12px;color:var(--text);">5 4<br>0 1<br>0 2<br>1 3<br>1 4</code>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p"><strong>BFS</strong> explores all neighbors of a node before moving deeper. Uses a <strong>queue</strong> (FIFO). Starting from source, enqueue it, then dequeue a node, visit it, and enqueue all unvisited neighbors. Parallel neighbor processing is done with <code>parallel for</code>.</p>
+            <p class="theory-p"><strong>DFS</strong> explores as far as possible along each branch before backtracking. Uses recursion. Mark visited, then recursively visit all unvisited neighbors. Parallel DFS launches different recursive branches simultaneously.</p>
+            <p class="theory-p">Time complexity: O(V + E) for both. Space: O(V) for visited array. Adjacency list (used here) is memory-efficient at O(V+E) vs O(V²) for matrix.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">Key difference between BFS and DFS?</div><div class="viva-a">BFS uses a queue and explores level by level (guarantees shortest path in unweighted graphs). DFS uses a stack/recursion and explores depth first before backtracking.</div></div>
+            <div class="viva-item"><div class="viva-q">Which data structure does BFS use and why?</div><div class="viva-a">Queue (FIFO) — ensures nodes are processed in the order they are discovered, guaranteeing level-by-level traversal.</div></div>
+            <div class="viva-item"><div class="viva-q">Applications of BFS and DFS?</div><div class="viva-a">BFS: shortest path (unweighted), social network levels, web crawlers. DFS: cycle detection, topological sort, maze solving, connected components.</div></div>
+            <div class="viva-item"><div class="viva-q">What is a race condition in parallel BFS?</div><div class="viva-a">Two threads might both check that a neighbor is unvisited and both try to enqueue it. Setting <code>vis[n]=1</code> before pushing reduces but doesn't fully eliminate this in naive implementations.</div></div>
+            <div class="viva-item"><div class="viva-q">Can DFS find the shortest path?</div><div class="viva-a">No. DFS doesn't guarantee shortest path. BFS guarantees shortest path in unweighted graphs. For weighted graphs, use Dijkstra's algorithm.</div></div>
+            <div class="viva-item"><div class="viva-q">What is an adjacency list?</div><div class="viva-a">A vector for each vertex storing its neighbors. Memory-efficient for sparse graphs: O(V+E) vs O(V²) for an adjacency matrix.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HPC4: CUDA Vector Add -->
+      <div class="section-panel" id="hpc-hpc4">
+        <p class="section-title">CUDA Vector Addition</p>
+        <p class="section-desc">GPU-parallel element-wise addition of two vectors. One CUDA thread per element.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-cuda">CUDA</span>
+            <div class="card-title-area">
+              <h2>Vector Addition using CUDA</h2>
+              <p class="ps">Each thread computes <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--cuda)">c[i] = a[i] + b[i]</code> independently. Full pipeline: alloc → copy to GPU → kernel → copy back → free.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">CUDA</span><span class="tag">GPU</span><span class="tag">__global__</span><span class="tag">cudaMalloc</span><span class="tag">cudaMemcpy</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">CUDA C</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-hpc4">#include &lt;stdio.h&gt;
+
+// ── CUDA Kernel ──────────────────────────────────────
+__global__ void vectorAdd(int *A, int *B, int *C, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; n) C[i] = A[i] + B[i];
+}
+
+int main() {
+    int n = 1024;
+    int h_A[n], h_B[n], h_C[n];
+
+    // Initialize host vectors
+    for (int i = 0; i &lt; n; i++) {
+        h_A[i] = i;
+        h_B[i] = i * 2;
+    }
+
+    int *d_A, *d_B, *d_C;
+
+    // Allocate GPU memory
+    cudaMalloc((void**)&amp;d_A, n * sizeof(int));
+    cudaMalloc((void**)&amp;d_B, n * sizeof(int));
+    cudaMalloc((void**)&amp;d_C, n * sizeof(int));
+
+    // Host → Device transfer
+    cudaMemcpy(d_A, h_A, n * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, n * sizeof(int), cudaMemcpyHostToDevice);
+
+    int blockSize = 256;
+    int gridSize  = (n + blockSize - 1) / blockSize; // = 4 blocks
+
+    // Launch kernel
+    vectorAdd&lt;&lt;&lt;gridSize, blockSize&gt;&gt;&gt;(d_A, d_B, d_C, n);
+
+    // Device → Host transfer
+    cudaMemcpy(h_C, d_C, n * sizeof(int), cudaMemcpyDeviceToHost);
+
+    printf("First 10 Results:\n");
+    for (int i = 0; i &lt; 10; i++)
+        printf("%d + %d = %d\n", h_A[i], h_B[i], h_C[i]);
+
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    return 0;
+}</code></pre>
+          </div>
+          <div class="compile-note">
+            <span style="color:var(--muted2)">$</span>
+            <span>nvcc file.cu -o out &amp;&amp; ./out</span>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p"><strong>CUDA</strong> (Compute Unified Device Architecture) allows running thousands of threads on a GPU simultaneously. The GPU has separate memory from the CPU, so data must be explicitly transferred.</p>
+            <p class="theory-p">A <strong>kernel</strong> is a function declared with <code>__global__</code> that runs on the GPU. It is launched with <code>kernel&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;(args)</code>. Each thread gets unique ID via <code>threadIdx.x</code>.</p>
+            <p class="theory-p">Workflow: <code>cudaMalloc</code> (allocate GPU memory) → <code>cudaMemcpy H→D</code> (copy input) → launch kernel → <code>cudaMemcpy D→H</code> (copy output) → <code>cudaFree</code>.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">What is CUDA?</div><div class="viva-a">Compute Unified Device Architecture — NVIDIA's parallel computing platform and API that allows using GPU for general-purpose computation (GPGPU).</div></div>
+            <div class="viva-item"><div class="viva-q">What is a kernel in CUDA?</div><div class="viva-a">A function declared with <code>__global__</code> that runs on the GPU and is called from the CPU. Each kernel launch creates many threads that execute the same code on different data (SIMT).</div></div>
+            <div class="viva-item"><div class="viva-q">Difference between host and device?</div><div class="viva-a">Host = CPU and its RAM. Device = GPU and its VRAM. They have separate memory spaces. Data must be explicitly transferred between them using <code>cudaMemcpy</code>.</div></div>
+            <div class="viva-item"><div class="viva-q">What do threadIdx, blockIdx, blockDim mean?</div><div class="viva-a"><code>threadIdx</code>: thread's index within its block. <code>blockIdx</code>: block's index within the grid. <code>blockDim</code>: number of threads per block. Global thread ID = blockIdx.x * blockDim.x + threadIdx.x.</div></div>
+            <div class="viva-item"><div class="viva-q">Why is GPU faster than CPU for vector addition?</div><div class="viva-a">A GPU has thousands of cores (vs 4–32 on CPU). For data-parallel problems where each element is independent, all elements can be computed simultaneously.</div></div>
+            <div class="viva-item"><div class="viva-q">What is cudaMemcpyHostToDevice vs DeviceToHost?</div><div class="viva-a"><code>HostToDevice</code>: copy input data from CPU RAM to GPU VRAM before kernel. <code>DeviceToHost</code>: copy results from GPU VRAM back to CPU RAM after kernel finishes.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HPC5: CUDA Matrix Mul -->
+      <div class="section-panel" id="hpc-hpc5">
+        <p class="section-title">CUDA Matrix Multiplication</p>
+        <p class="section-desc">One thread per output element. 2D thread blocks map naturally to 2D matrix structure.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-cuda">CUDA</span>
+            <div class="card-title-area">
+              <h2>Matrix Multiplication using CUDA</h2>
+              <p class="ps">Thread at (row, col) computes the full dot product for C[row][col]. Uses <code style="font-family:var(--mono);font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--cuda)">dim3</code> for 2D thread layout.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">CUDA</span><span class="tag">dim3</span><span class="tag">threadIdx.x/y</span><span class="tag">matrix</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">CUDA C</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-hpc5">#include &lt;stdio.h&gt;
+
+#define N 4   // Matrix dimension (increase as needed)
+
+// ── CUDA Kernel ──────────────────────────────────────
+__global__ void matrixMul(int A[N][N], int B[N][N], int C[N][N]) {
+    int row = threadIdx.y;
+    int col = threadIdx.x;
+    int sum = 0;
+    for (int k = 0; k &lt; N; k++)
+        sum += A[row][k] * B[k][col];
+    C[row][col] = sum;
+}
+
+int main() {
+    int A[N][N], B[N][N], C[N][N];
+
+    // Initialize: A[i][j] = i+j,  B[i][j] = i*j
+    for (int i = 0; i &lt; N; i++)
+        for (int j = 0; j &lt; N; j++) {
+            A[i][j] = i + j;
+            B[i][j] = i * j;
+        }
+
+    int (*d_A)[N], (*d_B)[N], (*d_C)[N];
+    cudaMalloc((void**)&amp;d_A, sizeof(int) * N * N);
+    cudaMalloc((void**)&amp;d_B, sizeof(int) * N * N);
+    cudaMalloc((void**)&amp;d_C, sizeof(int) * N * N);
+
+    cudaMemcpy(d_A, A, sizeof(int) * N * N, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, B, sizeof(int) * N * N, cudaMemcpyHostToDevice);
+
+    dim3 threadsPerBlock(N, N); // N² threads in 1 block
+    matrixMul&lt;&lt;&lt;1, threadsPerBlock&gt;&gt;&gt;(d_A, d_B, d_C);
+
+    cudaMemcpy(C, d_C, sizeof(int) * N * N, cudaMemcpyDeviceToHost);
+
+    printf("Result Matrix C = A × B:\n");
+    for (int i = 0; i &lt; N; i++) {
+        for (int j = 0; j &lt; N; j++)
+            printf("%4d ", C[i][j]);
+        printf("\n");
+    }
+
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    return 0;
+}</code></pre>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p">Matrix multiplication C = A × B where C[i][j] = sum of A[i][k] * B[k][j] for all k. Sequential complexity is O(N³).</p>
+            <p class="theory-p">In CUDA, one thread per output element — thread at (row, col) computes the entire dot product for C[row][col]. A 2D thread block <code>dim3 t(N, N)</code> maps naturally to the 2D matrix. N² threads run simultaneously.</p>
+            <p class="theory-p">For large matrices, <strong>shared memory tiling</strong> dramatically improves performance — each tile is loaded into fast on-chip shared memory (~48KB) once and reused, reducing slow global memory accesses.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">How does CUDA parallelize matrix multiplication?</div><div class="viva-a">One thread per output element. Thread (row, col) computes the dot product of a row from A and a column from B to produce C[row][col]. All output elements are computed simultaneously.</div></div>
+            <div class="viva-item"><div class="viva-q">What is dim3?</div><div class="viva-a">A CUDA struct for specifying 3D dimensions. <code>dim3 t(N, N)</code> creates a 2D block of N×N threads, where threadIdx.x and threadIdx.y index each thread in 2D.</div></div>
+            <div class="viva-item"><div class="viva-q">Max threads per block in CUDA?</div><div class="viva-a">1024 threads per block (32×32 for 2D). For matrices larger than 32×32, you must use multiple blocks and calculate global index as blockIdx * blockDim + threadIdx.</div></div>
+            <div class="viva-item"><div class="viva-q">What is shared memory in CUDA?</div><div class="viva-a">A small, fast on-chip memory (~48KB) shared between all threads in a block. For matrix multiplication, loading tiles into shared memory avoids repeated slow global memory reads — major speedup.</div></div>
+            <div class="viva-item"><div class="viva-q">What is a WARP in CUDA?</div><div class="viva-a">A group of 32 threads that execute the same instruction simultaneously (SIMT). For best performance, threads in a warp should take the same code path — avoid warp divergence.</div></div>
+            <div class="viva-item"><div class="viva-q">Compare CUDA vs OpenMP.</div><div class="viva-a">OpenMP: CPU-based, shared memory, few cores (4–64), easier to add to existing code. CUDA: GPU-based, separate memory, thousands of cores, explicit memory management, best for data-parallel workloads.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- DL PAGE -->
+<div class="page" id="page-dl">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-label">DNN</span>
+        <a class="sidebar-item active active-dl" onclick="showSection('dl','dl1',this,'dl')" href="#">
+          <span class="sidebar-dot dot-dl"></span>Boston Housing (Regression)
+        </a>
+        <a class="sidebar-item" onclick="showSection('dl','dl2',this,'dl')" href="#">
+          <span class="sidebar-dot dot-dl"></span>IMDB Sentiment (Binary)
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">CNN</span>
+        <a class="sidebar-item" onclick="showSection('dl','dl3',this,'cnn')" href="#">
+          <span class="sidebar-dot dot-cnn"></span>Plant Disease (CNN)
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">RNN</span>
+        <a class="sidebar-item" onclick="showSection('dl','dl4',this,'rnn')" href="#">
+          <span class="sidebar-dot dot-rnn"></span>Google Stock (RNN)
+        </a>
+      </div>
+    </aside>
+    <main class="content">
+
+      <!-- DL1: Boston Housing -->
+      <div class="section-panel active" id="dl-dl1">
+        <p class="section-title">Boston Housing — Linear Regression DNN</p>
+        <p class="section-desc">A single-neuron DNN with linear activation is mathematically equivalent to linear regression.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-easy">EASY</span>
+            <span class="card-badge badge-dl">DNN · Regression</span>
+            <div class="card-title-area">
+              <h2>Boston Housing Price Prediction — Linear Regression using DNN</h2>
+              <p class="ps">Predicts median house price (MEDV) from 13 features. Uses MSE loss and MAE metric.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Keras</span><span class="tag">Dense</span><span class="tag">StandardScaler</span><span class="tag">Adam</span><span class="tag">MSE</span><span class="tag">MAE</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">Python · Keras</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-dl1"># ── Step 1: Import Libraries ─────────────────────────────────
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing  import StandardScaler
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# ── Step 2: Load Dataset ─────────────────────────────────────
+df = pd.read_csv("HousingData.csv")
+df = df.dropna()          # drop rows with missing values (NA present in dataset)
+print(df.head())
+
+# ── Step 3: Split Features and Target ───────────────────────
+X = df.drop("MEDV", axis=1)    # 13 input features
+y = df["MEDV"]                   # target: median house value ($1000s)
+print(X.shape, y.shape)
+
+# ── Step 4: Train-Test Split ─────────────────────────────────
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# ── Step 5: Feature Scaling ──────────────────────────────────
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+
+# ── Step 6: Build Model (Linear Regression via DNN) ─────────
+model = Sequential()
+# Single neuron with linear activation = Linear Regression
+model.add(Dense(1, input_shape=(X_train.shape[1],), activation='linear'))
+
+model.compile(
+    optimizer='adam',
+    loss='mse',
+    metrics=['mae']
+)
+model.summary()
+
+# ── Step 7: Train Model ──────────────────────────────────────
+history = model.fit(
+    X_train, y_train,
+    epochs=100,
+    batch_size=16,
+    validation_split=0.2,
+    verbose=1
+)
+
+# ── Step 8: Evaluate Model ───────────────────────────────────
+loss, mae = model.evaluate(X_test, y_test)
+print(f"Test Loss (MSE): {loss}")
+print(f"Test MAE:        {mae}")
+
+# ── Step 9: Predictions ──────────────────────────────────────
+y_pred = model.predict(X_test)
+for i in range(5):
+    print(f"Actual: {y_test.iloc[i]:.2f} | Predicted: {y_pred[i][0]:.2f}")
+
+# ── Step 10: Plot Loss Curve ─────────────────────────────────
+plt.plot(history.history['loss'],     label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.legend()
+plt.title("Loss Graph")
+plt.xlabel("Epochs")
+plt.ylabel("Loss (MSE)")
+plt.show()</code></pre>
+          </div>
+          <div class="file-ref">
+            <div class="file-ref-title">Required File</div>
+            <div class="file-ref-row">📄 <span class="filename">HousingData.csv</span> <span style="color:var(--muted2)">(13 features: CRIM, ZN, INDUS, CHAS, NOX, RM, AGE, DIS, RAD, TAX, PTRATIO, B, LSTAT + target: MEDV)</span></div>
+            <div class="file-ref-row">☁ <a href="https://drive.google.com/drive/folders/1mGRzNgdHbdzAbYTedHD1sMAQJTS-orBi?usp=share_link" target="_blank" style="color:var(--omp);text-decoration:none;font-family:var(--mono);font-size:11px;">Download from Google Drive ↗</a></div>
+          </div>
+          <div class="ds-cols">
+            <div class="ds-cols-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.ds-arrow').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''">
+              📊 HousingData.csv — Column Reference <span class="ds-arrow" style="font-family:var(--mono);font-size:12px;transition:transform 0.2s">▶</span>
+            </div>
+            <div class="ds-cols-body">
+              <div class="ds-col-row"><span class="ds-col-name">CRIM</span><span class="ds-col-desc">Per capita crime rate by town</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">ZN</span><span class="ds-col-desc">Proportion of residential land zoned for lots over 25,000 sq.ft.</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">INDUS</span><span class="ds-col-desc">Proportion of non-retail business acres per town</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">CHAS</span><span class="ds-col-desc">Charles River dummy variable (1 if tract bounds river; 0 otherwise)</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">NOX</span><span class="ds-col-desc">Nitric oxides concentration (parts per 10 million)</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">RM</span><span class="ds-col-desc">Average number of rooms per dwelling</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">AGE</span><span class="ds-col-desc">Proportion of owner-occupied units built prior to 1940</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">DIS</span><span class="ds-col-desc">Weighted distances to five Boston employment centres</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">RAD</span><span class="ds-col-desc">Index of accessibility to radial highways</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">TAX</span><span class="ds-col-desc">Full-value property-tax rate per $10,000</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">PTRATIO</span><span class="ds-col-desc">Pupil-teacher ratio by town</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">B</span><span class="ds-col-desc">1000(Bk − 0.63)² where Bk is the proportion of Black residents by town</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">LSTAT</span><span class="ds-col-desc">% lower status of the population</span></div>
+              <div class="ds-col-row" style="background:rgba(255,126,179,0.05)"><span class="ds-col-name" style="color:var(--dl)">MEDV ★</span><span class="ds-col-desc" style="color:var(--dl)">Median value of owner-occupied homes in $1000s — <strong>TARGET</strong></span></div>
+            </div>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p">A <strong>Deep Neural Network (DNN)</strong> has multiple layers between input and output. For regression, the goal is to predict a continuous numerical value — here, the median house price (MEDV) in $1000s.</p>
+            <p class="theory-p">A single neuron with linear activation is mathematically equivalent to linear regression: output = W·X + b. The Boston Housing dataset has 13 features. <strong>StandardScaler</strong> normalises each feature to zero mean and unit variance — essential for gradient descent convergence.</p>
+            <p class="theory-p"><strong>MSE</strong> = average of squared differences (penalises large errors more). <strong>MAE</strong> = average of absolute differences (more interpretable). If val_loss rises while train_loss falls → overfitting.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">What is a DNN?</div><div class="viva-a">A Deep Neural Network has multiple hidden layers between input and output. Each layer learns increasingly abstract representations. "Deep" means more than one hidden layer.</div></div>
+            <div class="viva-item"><div class="viva-q">What is StandardScaler and why is it needed?</div><div class="viva-a">It transforms features to zero mean and unit variance. Features on different scales (e.g. rooms 1–10 vs tax 100–700) cause gradient descent to take unequal steps, slowing or preventing convergence.</div></div>
+            <div class="viva-item"><div class="viva-q">Difference between MSE and MAE?</div><div class="viva-a">MSE = mean of squared errors — penalises large errors heavily, sensitive to outliers. MAE = mean of absolute errors — treats all errors equally, more interpretable. MSE is used as loss; MAE as a readable metric.</div></div>
+            <div class="viva-item"><div class="viva-q">What is the Adam optimiser?</div><div class="viva-a">Adaptive Moment Estimation — combines momentum (accelerates gradients) and RMSProp (adaptive learning rates per parameter). Faster and more robust than plain SGD for most tasks.</div></div>
+            <div class="viva-item"><div class="viva-q">What is overfitting? How to detect it?</div><div class="viva-a">When a model learns training data too well and performs poorly on new data. Detected by comparing train vs validation loss — if val_loss rises while train_loss falls, the model is overfitting.</div></div>
+            <div class="viva-item"><div class="viva-q">What does <code>activation='linear'</code> mean?</div><div class="viva-a">The neuron's output equals its weighted sum with no transformation: f(x) = x. Used for regression where the output can be any real number, not bounded like sigmoid or relu.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DL2: IMDB -->
+      <div class="section-panel" id="dl-dl2">
+        <p class="section-title">IMDB Sentiment — Binary Classification</p>
+        <p class="section-desc">TF-IDF converts text reviews to feature vectors. DNN classifies them as positive (1) or negative (0).</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-medium">MEDIUM</span>
+            <span class="card-badge badge-dl">DNN · NLP</span>
+            <div class="card-title-area">
+              <h2>IMDB Sentiment Analysis — Binary Classification using DNN</h2>
+              <p class="ps">50,000 movie reviews → TF-IDF (5000 features) → Dense(128)→Dense(64)→Dense(1, sigmoid)</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Keras</span><span class="tag">TF-IDF</span><span class="tag">NLP</span><span class="tag">sigmoid</span><span class="tag">binary_crossentropy</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">Python · Keras</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-dl2"># ── 1. Import Libraries ──────────────────────────────────────
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import re
+
+from sklearn.model_selection          import train_test_split
+from sklearn.feature_extraction.text  import TfidfVectorizer
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# ── 2. Load Dataset ──────────────────────────────────────────
+df = pd.read_csv(
+    "IMDB_Dataset.csv",
+    encoding_errors='ignore',
+    on_bad_lines='skip',
+    engine='python'
+)
+df.columns = ['review', 'sentiment']
+df = df.dropna()
+print(df.head())
+
+# ── 3. Clean Text ────────────────────────────────────────────
+def clean_text(text):
+    text = str(text).lower()
+    text = re.sub(r'&lt;.*?&gt;', '', text)       # remove HTML tags
+    text = re.sub(r'[^a-zA-Z ]', '', text)  # keep only letters
+    return text
+
+df['review'] = df['review'].apply(clean_text)
+
+# ── 4. Encode Labels ─────────────────────────────────────────
+df['sentiment'] = df['sentiment'].map({'positive': 1, 'negative': 0})
+print(df['sentiment'].value_counts())
+
+# ── 5. TF-IDF Vectorization ──────────────────────────────────
+vectorizer = TfidfVectorizer(max_features=5000)
+X = vectorizer.fit_transform(df['review']).toarray()
+y = df['sentiment']
+
+# ── 6. Train-Test Split ──────────────────────────────────────
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# ── 7. Build DNN Model ───────────────────────────────────────
+model = Sequential([
+    Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
+    Dense(64,  activation='relu'),
+    Dense(1,   activation='sigmoid')   # binary output
+])
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+model.summary()
+
+# ── 8. Train Model ───────────────────────────────────────────
+history = model.fit(
+    X_train, y_train,
+    epochs=10,
+    batch_size=32,
+    validation_data=(X_test, y_test)
+)
+
+# ── 9. Evaluate ──────────────────────────────────────────────
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f"\nFinal Accuracy: {accuracy:.4f}")
+
+# ── 10. Plot Accuracy ────────────────────────────────────────
+plt.plot(history.history['accuracy'],     label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title("Accuracy Graph")
+plt.xlabel("Epochs"); plt.ylabel("Accuracy")
+plt.legend(); plt.show()</code></pre>
+          </div>
+          <div class="file-ref">
+            <div class="file-ref-title">Required File</div>
+            <div class="file-ref-row">📄 <span class="filename">IMDB_Dataset.csv</span> <span style="color:var(--muted2)">(50,000 reviews, columns: review, sentiment — values: positive/negative)</span></div>
+            <div class="file-ref-row">☁ <a href="https://drive.google.com/drive/folders/1mGRzNgdHbdzAbYTedHD1sMAQJTS-orBi?usp=share_link" target="_blank" style="color:var(--omp);text-decoration:none;font-family:var(--mono);font-size:11px;">Download from Google Drive ↗</a></div>
+          </div>
+          <div class="ds-cols">
+            <div class="ds-cols-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.ds-arrow').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''">
+              📊 IMDB_Dataset.csv — Column Reference <span class="ds-arrow" style="font-family:var(--mono);font-size:12px;transition:transform 0.2s">▶</span>
+            </div>
+            <div class="ds-cols-body">
+              <div class="ds-col-row"><span class="ds-col-name">review</span><span class="ds-col-desc">Raw movie review text (may contain HTML tags — cleaned in code with regex)</span></div>
+              <div class="ds-col-row" style="background:rgba(255,126,179,0.05)"><span class="ds-col-name" style="color:var(--dl)">sentiment ★</span><span class="ds-col-desc" style="color:var(--dl)">"positive" → 1, "negative" → 0 — <strong>TARGET</strong></span></div>
+            </div>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p">Sentiment analysis classifies text as positive or negative. Raw text must be converted to numbers — <strong>TF-IDF</strong> (Term Frequency–Inverse Document Frequency) converts each review into a 5000-dimensional vector. Words frequent in one review but rare overall get higher scores.</p>
+            <p class="theory-p">Architecture: Dense(128, relu) → Dense(64, relu) → Dense(1, sigmoid). Sigmoid outputs probability between 0 and 1. Threshold 0.5 → positive; below → negative.</p>
+            <p class="theory-p"><strong>Binary Cross-Entropy</strong> loss = -(y·log(p) + (1-y)·log(1-p)). Penalises confident wrong predictions heavily.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">What is TF-IDF?</div><div class="viva-a">Term Frequency–Inverse Document Frequency. TF = how often a word appears in a document. IDF = log(total docs / docs containing word). Product gives high scores to words important to a specific document but rare overall.</div></div>
+            <div class="viva-item"><div class="viva-q">Why use sigmoid for binary classification?</div><div class="viva-a">Sigmoid maps any real number to (0,1), interpretable as a probability. For binary tasks, one sigmoid output is sufficient. Above 0.5 → positive, below → negative.</div></div>
+            <div class="viva-item"><div class="viva-q">What is binary cross-entropy?</div><div class="viva-a">Loss = -(y·log(p) + (1-y)·log(1-p)). For y=1, penalises low predicted probability. For y=0, penalises high predicted probability. Standard loss for binary classification.</div></div>
+            <div class="viva-item"><div class="viva-q">What is ReLU activation?</div><div class="viva-a">Rectified Linear Unit: f(x) = max(0, x). Outputs zero for negative inputs, identity for positive. Solves vanishing gradient problem, computationally cheap, widely used in hidden layers.</div></div>
+            <div class="viva-item"><div class="viva-q">What is <code>max_features=5000</code> in TfidfVectorizer?</div><div class="viva-a">Keeps only the top 5000 most frequent words across the corpus. Reduces dimensionality — full vocabulary could be 100,000+ words. Balances information retention vs computational cost.</div></div>
+            <div class="viva-item"><div class="viva-q">Difference between binary and multi-class classification?</div><div class="viva-a">Binary: 2 classes, 1 sigmoid output, binary_crossentropy loss. Multi-class: N classes, N softmax outputs, categorical_crossentropy loss.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DL3: Plant CNN -->
+      <div class="section-panel" id="dl-dl3">
+        <p class="section-title">Plant Disease Detection — CNN</p>
+        <p class="section-desc">Convolutional Neural Network for multi-class image classification of plant leaf diseases.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-hard">HARD</span>
+            <span class="card-badge badge-cnn">CNN · Image</span>
+            <div class="card-title-area">
+              <h2>Plant Disease Detection — Image Classification using CNN</h2>
+              <p class="ps">3 Conv+Pool blocks → Flatten → Dense(128)+Dropout(0.5) → Softmax(num_classes). Data augmentation on training images.</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">CNN</span><span class="tag">Conv2D</span><span class="tag">MaxPooling2D</span><span class="tag">Dropout</span><span class="tag">ImageDataGenerator</span><span class="tag">softmax</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">Python · Keras</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-dl3"># ── 1. Import Libraries ──────────────────────────────────────
+import tensorflow as tf
+from tensorflow.keras.models  import Sequential
+from tensorflow.keras.layers  import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
+
+# ── 2. Dataset Paths ─────────────────────────────────────────
+train_path = "Plant_Disease_Dataset/train"
+valid_path = "Plant_Disease_Dataset/valid"
+test_path  = "Plant_Disease_Dataset/test"
+
+# ── 3. Data Generators (with Augmentation for train) ────────
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=20,
+    zoom_range=0.2,
+    horizontal_flip=True
+)
+valid_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen  = ImageDataGenerator(rescale=1./255)
+
+train_data = train_datagen.flow_from_directory(
+    train_path, target_size=(128,128), batch_size=32, class_mode='categorical'
+)
+valid_data = valid_datagen.flow_from_directory(
+    valid_path, target_size=(128,128), batch_size=32, class_mode='categorical'
+)
+test_data  = test_datagen.flow_from_directory(
+    test_path,  target_size=(128,128), batch_size=32, class_mode='categorical'
+)
+
+# ── 4. Build CNN Architecture ────────────────────────────────
+model = Sequential()
+
+# Conv Block 1
+model.add(Conv2D(32, (3,3), activation='relu', input_shape=(128,128,3)))
+model.add(MaxPooling2D(2,2))
+
+# Conv Block 2
+model.add(Conv2D(64, (3,3), activation='relu'))
+model.add(MaxPooling2D(2,2))
+
+# Conv Block 3
+model.add(Conv2D(128, (3,3), activation='relu'))
+model.add(MaxPooling2D(2,2))
+
+# Fully Connected Head
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))                         # reduces overfitting
+model.add(Dense(train_data.num_classes, activation='softmax'))
+
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+model.summary()
+
+# ── 5. Train Model ───────────────────────────────────────────
+history = model.fit(
+    train_data,
+    epochs=3,
+    validation_data=valid_data
+)
+
+# ── 6. Plot Accuracy ─────────────────────────────────────────
+plt.plot(history.history['accuracy'],     label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title("CNN Accuracy Graph")
+plt.xlabel("Epochs"); plt.ylabel("Accuracy")
+plt.legend(); plt.show()</code></pre>
+          </div>
+          <div class="file-ref">
+            <div class="file-ref-title">Required Dataset</div>
+            <div class="file-ref-row">📁 <span class="filename">Plant_Disease_Dataset/train/</span> <span style="color:var(--muted2)">(subdirectory per class)</span></div>
+            <div class="file-ref-row">📁 <span class="filename">Plant_Disease_Dataset/valid/</span> <span style="color:var(--muted2)">(subdirectory per class)</span></div>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p">A <strong>CNN</strong> uses convolutional layers that learn spatial features (edges, textures, shapes) by sliding filters over images. It is designed specifically for image data — far more parameter-efficient than a DNN.</p>
+            <p class="theory-p">Architecture — 3 Conv blocks: each has Conv2D (learns features) + MaxPooling2D (reduces spatial size). Filter counts increase 32→64→128 to detect increasingly complex patterns. Flatten → Dense(128) + <strong>Dropout(0.5)</strong> → Softmax.</p>
+            <p class="theory-p"><strong>Data Augmentation</strong> (rotation, zoom, flip) artificially increases training diversity to reduce overfitting. Validation data is never augmented — only rescaled to get a true performance measure.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">CNN vs DNN?</div><div class="viva-a">CNN uses convolutional layers that share weights spatially via filters — translation-invariant and parameter-efficient for images. DNN uses fully-connected layers where every neuron connects to every next neuron — inefficient for images.</div></div>
+            <div class="viva-item"><div class="viva-q">What does Conv2D do?</div><div class="viva-a">Slides a small filter (e.g. 3×3) over the input image, computing dot products at each position to produce a feature map. Each filter detects a specific pattern (edge, texture). Multiple filters learn multiple features simultaneously.</div></div>
+            <div class="viva-item"><div class="viva-q">What is MaxPooling2D?</div><div class="viva-a">Takes the maximum value in each 2×2 window, reducing spatial dimensions by half. Makes the network more robust to small translations, reduces parameters, and speeds up training.</div></div>
+            <div class="viva-item"><div class="viva-q">What is Dropout and why 0.5?</div><div class="viva-a">Randomly sets 50% of neuron outputs to zero during training, forcing redundant representations. Prevents overfitting. 0.5 is common for fully-connected layers. Dropout is disabled during inference.</div></div>
+            <div class="viva-item"><div class="viva-q">What is softmax?</div><div class="viva-a">Converts a vector of raw scores to probabilities summing to 1. Used for multi-class classification in the output layer. The class with the highest probability is selected.</div></div>
+            <div class="viva-item"><div class="viva-q">Why does filter count increase (32→64→128)?</div><div class="viva-a">Early layers detect simple features (edges, colours) — fewer filters needed. Deeper layers detect complex patterns (disease spots, shapes) — more filters capture richer combinations.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DL4: RNN Stock -->
+      <div class="section-panel" id="dl-dl4">
+        <p class="section-title">Google Stock Price — RNN Time Series</p>
+        <p class="section-desc">SimpleRNN with a sliding window approach predicts the next day's stock price from the last 60 days.</p>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-badge badge-hard">HARD</span>
+            <span class="card-badge badge-rnn">RNN · Time Series</span>
+            <div class="card-title-area">
+              <h2>Google Stock Price Prediction — Time Series using RNN</h2>
+              <p class="ps">Sliding window of 60 days → SimpleRNN(50, return_seq=True) → SimpleRNN(50) → Dense(1)</p>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">RNN</span><span class="tag">SimpleRNN</span><span class="tag">MinMaxScaler</span><span class="tag">sliding window</span><span class="tag">time series</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-toolbar">
+              <span class="code-lang">Python · Keras</span>
+              <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+<pre><code id="code-dl4"># ── 1. Import Libraries ──────────────────────────────────────
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.preprocessing      import MinMaxScaler
+from tensorflow.keras.models    import Sequential
+from tensorflow.keras.layers    import Dense, SimpleRNN
+
+# ── 2. Load Dataset ──────────────────────────────────────────
+df = pd.read_csv("goog.csv")
+
+# Extract Open column, drop non-numeric rows
+data = pd.to_numeric(df['Open'], errors='coerce').dropna().values.reshape(-1, 1)
+
+# ── 3. Normalise Data ────────────────────────────────────────
+scaler = MinMaxScaler(feature_range=(0, 1))
+data_scaled = scaler.fit_transform(data)
+
+# ── 4. Train-Test Split (80/20) ──────────────────────────────
+train_size = int(len(data_scaled) * 0.8)
+train_data = data_scaled[:train_size]
+test_data  = data_scaled[train_size:]
+
+# ── 5. Create Sliding Window Dataset ────────────────────────
+def create_dataset(dataset, window=60):
+    X, y = [], []
+    for i in range(window, len(dataset)):
+        X.append(dataset[i-window:i, 0])
+        y.append(dataset[i, 0])
+    return np.array(X), np.array(y)
+
+X_train, y_train = create_dataset(train_data)
+X_test,  y_test  = create_dataset(test_data)
+
+# ── 6. Reshape for RNN: (samples, timesteps, features) ──────
+X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test  = X_test.reshape(X_test.shape[0],  X_test.shape[1],  1)
+
+# ── 7. Build RNN Model ───────────────────────────────────────
+model = Sequential([
+    SimpleRNN(50, return_sequences=True, input_shape=(60, 1)),
+    SimpleRNN(50),
+    Dense(1)           # single price output
+])
+
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.summary()
+
+# ── 8. Train Model ───────────────────────────────────────────
+model.fit(X_train, y_train, epochs=20, batch_size=32)
+
+# ── 9. Predict &amp; Inverse Scale ──────────────────────────────
+predicted = model.predict(X_test)
+predicted = scaler.inverse_transform(predicted)
+real      = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+# ── 10. Plot Results ─────────────────────────────────────────
+plt.plot(real,      color='red',  label='Real Price')
+plt.plot(predicted, color='blue', label='Predicted Price')
+plt.title("Google Stock Price Prediction (RNN)")
+plt.xlabel("Time"); plt.ylabel("Price ($)")
+plt.legend(); plt.show()</code></pre>
+          </div>
+          <div class="file-ref">
+            <div class="file-ref-title">Required File</div>
+            <div class="file-ref-row">📄 <span class="filename">goog.csv</span> <span style="color:var(--muted2)">(columns: Date, Open, High, Low, Close, Volume)</span></div>
+            <div class="file-ref-row">☁ <a href="https://drive.google.com/drive/folders/1mGRzNgdHbdzAbYTedHD1sMAQJTS-orBi?usp=share_link" target="_blank" style="color:var(--omp);text-decoration:none;font-family:var(--mono);font-size:11px;">Download from Google Drive ↗</a></div>
+          </div>
+          <div class="ds-cols">
+            <div class="ds-cols-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.ds-arrow').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''">
+              📊 goog.csv — Column Reference <span class="ds-arrow" style="font-family:var(--mono);font-size:12px;transition:transform 0.2s">▶</span>
+            </div>
+            <div class="ds-cols-body">
+              <div class="ds-col-row"><span class="ds-col-name">Date</span><span class="ds-col-desc">Trading date (e.g. 12/19/2016)</span></div>
+              <div class="ds-col-row" style="background:rgba(255,179,71,0.05)"><span class="ds-col-name" style="color:var(--rnn)">Open ★</span><span class="ds-col-desc" style="color:var(--rnn)">Opening stock price — <strong>used as input feature</strong></span></div>
+              <div class="ds-col-row"><span class="ds-col-name">High</span><span class="ds-col-desc">Highest price during the trading day</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">Low</span><span class="ds-col-desc">Lowest price during the trading day</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">Close</span><span class="ds-col-desc">Closing stock price at end of trading day</span></div>
+              <div class="ds-col-row"><span class="ds-col-name">Volume</span><span class="ds-col-desc">Number of shares traded during the day</span></div>
+            </div>
+          </div>
+          <div class="theory-wrap">
+            <p class="theory-head">Theory</p>
+            <p class="theory-p">A <strong>Recurrent Neural Network (RNN)</strong> is designed for sequential data. Unlike feedforward networks, RNNs have a hidden state that carries information from previous time steps, giving them "memory".</p>
+            <p class="theory-p">The <strong>sliding window</strong> approach creates samples: given the last 60 days of opening prices, predict day 61. <strong>MinMaxScaler</strong> normalises prices to [0,1] — critical for RNN stability. <code>inverse_transform</code> recovers original price scale after prediction.</p>
+            <p class="theory-p"><strong>Limitation:</strong> SimpleRNN suffers from vanishing gradients over long sequences. LSTM (Long Short-Term Memory) and GRU solve this with gating mechanisms, making them better for long-range dependencies.</p>
+          </div>
+          <div class="viva-wrap">
+            <p class="viva-head">Viva Q&amp;A</p>
+            <div class="viva-item"><div class="viva-q">What is an RNN and how does it differ from a DNN?</div><div class="viva-a">RNN has recurrent connections — the output at each time step feeds back as input to the next step, creating a hidden state that acts as memory. DNN processes each input independently with no temporal memory.</div></div>
+            <div class="viva-item"><div class="viva-q">What is the vanishing gradient problem?</div><div class="viva-a">During backpropagation through time, gradients are multiplied at each step. Over many steps they become exponentially small (vanish), making early time steps' weights learn very slowly. LSTM and GRU solve this.</div></div>
+            <div class="viva-item"><div class="viva-q">What is a sliding window in time series?</div><div class="viva-a">Creates training samples by sliding a fixed-size window over the sequence. Window size = 60: sample X = prices[i-60:i], label y = prices[i]. Each window generates one training example.</div></div>
+            <div class="viva-item"><div class="viva-q">What does <code>return_sequences=True</code> do?</div><div class="viva-a">Makes the RNN layer return the hidden state at every time step (shape: batch, 60, 50) instead of just the last one (batch, 50). Required when stacking RNN layers — the next RNN needs a sequence as input.</div></div>
+            <div class="viva-item"><div class="viva-q">What is LSTM and how is it better than SimpleRNN?</div><div class="viva-a">Long Short-Term Memory adds three gates (input, forget, output) that control what information to remember or forget. Prevents vanishing gradients and captures long-range dependencies — much better for sequences longer than ~20 steps.</div></div>
+            <div class="viva-item"><div class="viva-q">Why MinMaxScaler for RNN?</div><div class="viva-a">MinMaxScaler maps to [0,1], preserving the relative shape of the time series. RNNs are sensitive to input scale. After prediction, inverse_transform recovers original dollar values.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// Page switching
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-omp','active-dl'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (id === 'hpc') btn.classList.add('active-omp');
+  else if (id === 'dl') btn.classList.add('active-dl');
+}
+
+// Section switching within a page
+function showSection(page, secId, el, color) {
+  event.preventDefault();
+  const prefix = page + '-';
+  document.querySelectorAll(`#page-${page} .section-panel`).forEach(p => p.classList.remove('active'));
+  document.querySelectorAll(`#page-${page} .sidebar-item`).forEach(i => {
+    i.classList.remove('active','active-omp','active-dl','active-cuda','active-rnn','active-cnn');
+  });
+  document.getElementById(prefix + secId).classList.add('active');
+  el.classList.add('active', 'active-' + color);
+}
+
+// From overview card
+function goTo(page, secId) {
+  const navBtn = [...document.querySelectorAll('.nav-btn')].find(b => b.textContent.includes(page === 'hpc' ? 'HPC' : 'Deep'));
+  if (navBtn) switchPage(page, navBtn);
+
+  // Find and click sidebar item
+  setTimeout(() => {
+    const colorMap = {
+      hpc1:'omp',hpc2:'omp',hpc3:'omp',hpc4:'cuda',hpc5:'cuda',
+      dl1:'dl',dl2:'dl',dl3:'cnn',dl4:'rnn'
+    };
+    const items = document.querySelectorAll(`#page-${page} .sidebar-item`);
+    const panels = document.querySelectorAll(`#page-${page} .section-panel`);
+    panels.forEach(p => p.classList.remove('active'));
+    items.forEach(i => i.classList.remove('active','active-omp','active-dl','active-cuda','active-rnn','active-cnn'));
+    document.getElementById(page + '-' + secId).classList.add('active');
+    const idx = ['hpc1','hpc2','hpc3','hpc4','hpc5','dl1','dl2','dl3','dl4'].indexOf(secId);
+    if (items[idx >= 5 ? idx - 5 : idx]) {
+      const color = colorMap[secId];
+      const allItems = [...items];
+      const keys = page === 'hpc' ? ['hpc1','hpc2','hpc3','hpc4','hpc5'] : ['dl1','dl2','dl3','dl4'];
+      const itemIdx = keys.indexOf(secId);
+      if (allItems[itemIdx]) {
+        allItems[itemIdx].classList.add('active','active-' + color);
+      }
+    }
+  }, 10);
+}
+
+// Copy code
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre code');
+  let text = pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
